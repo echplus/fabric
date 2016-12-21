@@ -1,4 +1,7 @@
 
+##  This is one Enterprise-class Cooperation project base on hyperledger/fabric in company EchPlus, and I'm a main commitor for echplus/fabric. 
+##  Current active branch is v0.6.
+
 **Note:** This is a **read-only mirror** of the formal [Gerrit](https://gerrit.hyperledger.org/r/#/admin/projects/fabric) repository,
 where active development is ongoing. Issue tracking is handled in [Jira](https://jira.hyperledger.org/secure/RapidBoard.jspa?projectKey=FAB&rapidView=5&view=planning)
 
