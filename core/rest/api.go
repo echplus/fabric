@@ -19,6 +19,8 @@ package rest
 import (
 	"errors"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -27,6 +29,7 @@ import (
 	"github.com/hyperledger/fabric/core/ledger"
 	pb "github.com/hyperledger/fabric/protos"
 	"github.com/spf13/viper"
+	"google.golang.org/grpc"
 )
 
 var (
@@ -76,6 +79,34 @@ func NewOpenchainServerWithPeerInfo(peerServer PeerInfo) (*ServerOpenchain, erro
 // GetBlockchainInfo returns information about the blockchain ledger such as
 // height, current block hash, and previous block hash.
 func (s *ServerOpenchain) GetBlockchainInfo(ctx context.Context, e *empty.Empty) (*pb.BlockchainInfo, error) {
+
+	if !viper.GetBool("peer.validator.enabled") {
+		target, err := s.getValidatorAddress()
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		var opts []grpc.DialOption
+		opts = append(opts, grpc.WithTimeout(time.Minute))
+		opts = append(opts, grpc.WithInsecure())
+		conn, err := grpc.Dial(target, opts...)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+		defer conn.Close()
+
+		openChain := pb.NewOpenchainClient(conn)
+		blockchainInfo, err := openChain.GetBlockchainInfo(context.Background(), &empty.Empty{})
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		return blockchainInfo, nil
+	}
+
 	blockchainInfo, err := s.ledger.GetBlockchainInfo()
 	if blockchainInfo.Height == 0 {
 		return nil, fmt.Errorf("No blocks in blockchain.")
@@ -86,6 +117,34 @@ func (s *ServerOpenchain) GetBlockchainInfo(ctx context.Context, e *empty.Empty)
 // GetBlockByNumber returns the data contained within a specific block in the
 // blockchain. The genesis block is block zero.
 func (s *ServerOpenchain) GetBlockByNumber(ctx context.Context, num *pb.BlockNumber) (*pb.Block, error) {
+
+	if !viper.GetBool("peer.validator.enabled") {
+		target, err := s.getValidatorAddress()
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		var opts []grpc.DialOption
+		opts = append(opts, grpc.WithTimeout(time.Minute))
+		opts = append(opts, grpc.WithInsecure())
+		conn, err := grpc.Dial(target, opts...)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+		defer conn.Close()
+
+		openChain := pb.NewOpenchainClient(conn)
+		blockByNumber, err := openChain.GetBlockByNumber(context.Background(), num)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		return blockByNumber, nil
+	}
+
 	block, err := s.ledger.GetBlockByNumber(num.Number)
 	if err != nil {
 		switch err {
@@ -129,6 +188,34 @@ func (s *ServerOpenchain) GetBlockByNumber(ctx context.Context, num *pb.BlockNum
 // GetBlockCount returns the current number of blocks in the blockchain data
 // structure.
 func (s *ServerOpenchain) GetBlockCount(ctx context.Context, e *empty.Empty) (*pb.BlockCount, error) {
+
+	if !viper.GetBool("peer.validator.enabled") {
+		target, err := s.getValidatorAddress()
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		var opts []grpc.DialOption
+		opts = append(opts, grpc.WithTimeout(time.Minute))
+		opts = append(opts, grpc.WithInsecure())
+		conn, err := grpc.Dial(target, opts...)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+		defer conn.Close()
+
+		openChain := pb.NewOpenchainClient(conn)
+		blockCount, err := openChain.GetBlockCount(context.Background(), &empty.Empty{})
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		return blockCount, nil
+	}
+
 	// Total number of blocks in the blockchain.
 	size := s.ledger.GetBlockchainSize()
 
@@ -149,8 +236,36 @@ func (s *ServerOpenchain) GetState(ctx context.Context, chaincodeID, key string)
 }
 
 // GetTransactionByID returns a transaction matching the specified ID
-func (s *ServerOpenchain) GetTransactionByID(ctx context.Context, txID string) (*pb.Transaction, error) {
-	transaction, err := s.ledger.GetTransactionByID(txID)
+func (s *ServerOpenchain) GetTransactionByID(ctx context.Context, trans *pb.Transaction) (*pb.Transaction, error) {
+
+	if !viper.GetBool("peer.validator.enabled") {
+		target, err := s.getValidatorAddress()
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		var opts []grpc.DialOption
+		opts = append(opts, grpc.WithTimeout(time.Minute))
+		opts = append(opts, grpc.WithInsecure())
+		conn, err := grpc.Dial(target, opts...)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+		defer conn.Close()
+
+		openChain := pb.NewOpenchainClient(conn)
+		transaction, err := openChain.GetTransactionByID(context.Background(), trans)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		return transaction, nil
+	}
+
+	transaction, err := s.ledger.GetTransactionByID(trans.Txid)
 	if err != nil {
 		switch err {
 		case ledger.ErrResourceNotFound:
@@ -177,4 +292,36 @@ func (s *ServerOpenchain) GetPeerEndpoint(ctx context.Context, e *empty.Empty) (
 	peers = append(peers, peerEndpoint)
 	peersMessage := &pb.PeersMessage{Peers: peers}
 	return peersMessage, nil
+}
+
+func (s *ServerOpenchain) getValidatorAddress() (string, error) {
+
+	peers, err := s.GetPeers(context.Background(), &empty.Empty{})
+	if err != nil {
+		restLogger.Error(err)
+		return "", err
+	}
+
+	if len(peers.Peers) == 0 {
+		err = errors.New("no validator peer found")
+		restLogger.Error(err)
+		return "", err
+	}
+
+	var tmp []string
+	for _, peer := range peers.Peers {
+		if peer.Type == pb.PeerEndpoint_VALIDATOR {
+			tmp = append(tmp, peer.Address)
+		}
+	}
+
+	if len(tmp) == 0 {
+		err = errors.New("no validator peer found")
+		restLogger.Error(err)
+		return "", err
+	}
+
+	target := tmp[rand.Intn(len(tmp))]
+
+	return target, nil
 }

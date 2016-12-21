@@ -39,6 +39,8 @@ service Openchain {
     // GetPeers returns a list of all peer nodes currently connected to the target
     // peer.
     rpc GetPeers(google.protobuf.Empty) returns (PeersMessage) {}
+	
+	rpc GetTransactionByID(Transaction) returns (Transaction) {}
 }
 
 // Specifies the block number to be returned from the blockchain.
