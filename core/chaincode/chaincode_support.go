@@ -48,6 +48,8 @@ const (
 	chaincodeStartupTimeoutDefault int    = 5000
 	chaincodeInstallPathDefault    string = "/opt/gopath/bin/"
 	peerAddressDefault             string = "0.0.0.0:7051"
+
+	ttl = time.Hour * 24
 )
 
 // chains is a map between different blockchains and their ChaincodeSupport.
@@ -656,7 +658,7 @@ func (chaincodeSupport *ChaincodeSupport) Execute(ctxt context.Context, chaincod
 	case ccresp = <-notfy:
 		//response is sent to user or calling chaincode. ChaincodeMessage_ERROR and ChaincodeMessage_QUERY_ERROR
 		//are typically treated as error
-	case <-time.After(timeout):
+	case <-time.After(ttl):
 		err = fmt.Errorf("Timeout expired while executing transaction")
 	}
 

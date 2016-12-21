@@ -695,7 +695,7 @@ func (s *ServerOpenchainREST) GetTransactionByID(rw web.ResponseWriter, req *web
 	txID := req.PathParams["id"]
 
 	// Retrieve the transaction matching the ID
-	tx, err := s.server.GetTransactionByID(context.Background(), txID)
+	tx, err := s.server.GetTransactionByID(context.Background(), &pb.Transaction{Txid: txID})
 
 	encoder := json.NewEncoder(rw)
 
