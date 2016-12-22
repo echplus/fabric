@@ -25,7 +25,7 @@ func TestEnroll(t *testing.T) {
 
 func TestDeploy(t *testing.T) {
 	mbsrvc := &memberImpl{}
-	path := "github.com/fabric_sdk_golang/chaincodecc"
+	path := "github.com/hyperledger/fabric/chaincode/chaincodecc"
 	args := []string{"init"}
 	mbsrvc.Deploy(path, args, []byte("dummy metadata"), "admin")
 }
