@@ -133,7 +133,7 @@ func (ecap *ECAP) CreateCertificatePair(ctx context.Context, in *pb.ECertCreateR
 		tok = []byte(randomString(12))
 
 		mutex.Lock()
-		_, err = ecap.eca.db.Exec("UPDATE Users SET token=?, state=?, key=? WHERE id=?", tok, 1, in.Enc.Key, id)
+		_, err = ecap.eca.db.Exec("UPDATE Users SET token=?, state=?, `key`=? WHERE id=?", tok, 1, in.Enc.Key, id)
 		mutex.Unlock()
 
 		if err != nil {

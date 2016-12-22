@@ -25,6 +25,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"math/big"
@@ -37,10 +38,10 @@ import (
 
 	gp "google/protobuf"
 
+	_ "github.com/go-sql-driver/mysql" // This blank import is required to load sql driver
 	"github.com/hyperledger/fabric/core/crypto/primitives"
 	"github.com/hyperledger/fabric/flogging"
 	pb "github.com/hyperledger/fabric/membersrvc/protos"
-	_ "github.com/mattn/go-sqlite3" // This blank import is required to load sqlite3 driver
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
 )
@@ -85,6 +86,13 @@ var (
 	rootPath       string
 	caDir          string
 )
+
+var dbServer string
+
+func init() {
+	flag.StringVar(&dbServer, "db", "", "address of db server")
+	flag.Parse()
+}
 
 // NewCertificateSpec creates a new certificate spec
 func NewCertificateSpec(id string, commonName string, serialNumber *big.Int, pub interface{}, usage x509.KeyUsage, notBefore *time.Time, notAfter *time.Time, opt ...pkix.Extension) *CertificateSpec {
@@ -212,13 +220,13 @@ func (spec *CertificateSpec) GetExtensions() *[]pkix.Extension {
 type TableInitializer func(*sql.DB) error
 
 func initializeCommonTables(db *sql.DB) error {
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Certificates (row INTEGER PRIMARY KEY, id VARCHAR(64), timestamp INTEGER, usage INTEGER, cert BLOB, hash BLOB, kdfkey BLOB)"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Certificates (row INTEGER PRIMARY KEY AUTO_INCREMENT, id VARCHAR(64), timestamp INTEGER, `usage` INTEGER, cert BLOB, hash BLOB, kdfkey BLOB)"); err != nil {
 		return err
 	}
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Users (row INTEGER PRIMARY KEY, id VARCHAR(64), enrollmentId VARCHAR(100), role INTEGER, metadata VARCHAR(256), token BLOB, state INTEGER, key BLOB)"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Users (row INTEGER PRIMARY KEY AUTO_INCREMENT, id VARCHAR(64), enrollmentId VARCHAR(100), role INTEGER, metadata VARCHAR(256), token BLOB, state INTEGER, `key` BLOB)"); err != nil {
 		return err
 	}
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS AffiliationGroups (row INTEGER PRIMARY KEY, name VARCHAR(64), parent INTEGER, FOREIGN KEY(parent) REFERENCES AffiliationGroups(row))"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS AffiliationGroups (row INTEGER PRIMARY KEY AUTO_INCREMENT, name VARCHAR(64), parent INTEGER)"); err != nil {
 		return err
 	}
 	return nil
@@ -239,7 +247,7 @@ func NewCA(name string, initTables TableInitializer) *CA {
 	}
 
 	// open or create certificate database
-	db, err := sql.Open("sqlite3", ca.path+"/"+name+".db")
+	db, err := sql.Open("mysql", dbServer+"/"+name)
 	if err != nil {
 		caLogger.Panic(err)
 	}
@@ -397,7 +405,7 @@ func (ca *CA) persistCertificate(id string, timestamp int64, usage x509.KeyUsage
 	hash.Write(certRaw)
 	var err error
 
-	if _, err = ca.db.Exec("INSERT INTO Certificates (id, timestamp, usage, cert, hash, kdfkey) VALUES (?, ?, ?, ?, ?, ?)", id, timestamp, usage, certRaw, hash.Sum(nil), kdfKey); err != nil {
+	if _, err = ca.db.Exec("INSERT INTO Certificates (id, timestamp, `usage`, cert, hash, kdfkey) VALUES (?, ?, ?, ?, ?, ?)", id, timestamp, usage, certRaw, hash.Sum(nil), kdfKey); err != nil {
 		caLogger.Error(err)
 	}
 	return err
@@ -462,7 +470,7 @@ func (ca *CA) readCertificateByKeyUsage(id string, usage x509.KeyUsage) ([]byte,
 	defer mutex.RUnlock()
 
 	var raw []byte
-	err := ca.db.QueryRow("SELECT cert FROM Certificates WHERE id=? AND usage=?", id, usage).Scan(&raw)
+	err := ca.db.QueryRow("SELECT cert FROM Certificates WHERE id=? AND `usage`=?", id, usage).Scan(&raw)
 
 	if err != nil {
 		caLogger.Debugf("readCertificateByKeyUsage() Error: %v", err)
@@ -725,7 +733,7 @@ func (ca *CA) readUser(id string) *sql.Row {
 	mutex.RLock()
 	defer mutex.RUnlock()
 
-	return ca.db.QueryRow("SELECT role, token, state, key, enrollmentId FROM Users WHERE id=?", id)
+	return ca.db.QueryRow("SELECT role, token, state, `key`, enrollmentId FROM Users WHERE id=?", id)
 }
 
 // readUsers reads users of a given Role
