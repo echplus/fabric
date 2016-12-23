@@ -17,131 +17,113 @@
  * Licensed Materials - Property of IBM
  * © Copyright IBM Corp. 2016
  */
-
+"use strict";
 /*
  * This module provides stats utilities.
  */
-
 /**
  * The Average class keeps a rolling average based on sample values.
  * The sample weight determines how heavily to weight the most recent sample in calculating the current average.
  */
-export class Average {
-
-    private avg: number;
-    private sampleWeight: number;
-    private avgWeight: number;
-
-    constructor() {
+var Average = (function () {
+    function Average() {
         this.setSampleWeight(0.5);
     }
-
     // Get the average value
-    getValue(): number {
+    Average.prototype.getValue = function () {
         return this.avg;
-    }
-
+    };
     /**
      * Add a sample.
      */
-    addSample(sample: number) {
+    Average.prototype.addSample = function (sample) {
         if (this.avg == null) {
             this.avg = sample;
-        } else {
+        }
+        else {
             this.avg = (this.avg * this.avgWeight) + (sample * this.sampleWeight);
         }
-    }
-
+    };
     /**
      * Get the weight.
      * The weight determines how heavily to weight the most recent sample in calculating the average.
      */
-    getSampleWeight(): number {
+    Average.prototype.getSampleWeight = function () {
         return this.sampleWeight;
-    }
-
+    };
     /**
      * Set the weight.
      * @params weight A value between 0 and 1.
      */
-    setSampleWeight(weight: number):void {
+    Average.prototype.setSampleWeight = function (weight) {
         if ((weight < 0) || (weight > 1)) {
-            throw Error("weight must be in range [0,1]; "+weight+" is an invalid value")
+            throw Error("weight must be in range [0,1]; " + weight + " is an invalid value");
         }
         this.sampleWeight = weight;
         this.avgWeight = 1 - weight;
-    }
-
-}
-
+    };
+    return Average;
+}());
+exports.Average = Average;
 /**
  * Class to keep track of an average response time.
  */
-export class ResponseTime {
-
-    private avg: Average = new Average();
-    private startTime: number;
-
-    constructor() {
+var ResponseTime = (function () {
+    function ResponseTime() {
+        this.avg = new Average();
     }
-
-    start(): void {
+    ResponseTime.prototype.start = function () {
         if (this.startTime != null) {
-            throw Error ("started twice without stopping");
+            throw Error("started twice without stopping");
         }
         this.startTime = getCurTimeInMs();
-    }
-
-    stop(): void {
+    };
+    ResponseTime.prototype.stop = function () {
         if (this.startTime == null) {
-            throw Error ("stopped without starting");
+            throw Error("stopped without starting");
         }
-        let elapsed = getCurTimeInMs() - this.startTime;
+        var elapsed = getCurTimeInMs() - this.startTime;
         this.startTime = null;
         this.avg.addSample(elapsed);
-    }
-
-    cancel(): void {
+    };
+    ResponseTime.prototype.cancel = function () {
         if (this.startTime == null) {
-            throw Error ("cancel without starting");
+            throw Error("cancel without starting");
         }
         this.startTime = null;
-    }
-
+    };
     // Get the average response time
-    getValue(): number {
+    ResponseTime.prototype.getValue = function () {
         return this.avg.getValue();
-    }
-}
-
+    };
+    return ResponseTime;
+}());
+exports.ResponseTime = ResponseTime;
 /**
  * Calculate the rate
  */
-export class Rate {
-
-    private prevTime: number;
-    private avg: Average = new Average();
-
-    constructor() {
+var Rate = (function () {
+    function Rate() {
+        this.avg = new Average();
         this.avg.setSampleWeight(0.25);
     }
-
-    tick(): void {
-        let curTime = getCurTimeInMs();
+    Rate.prototype.tick = function () {
+        var curTime = getCurTimeInMs();
         if (this.prevTime) {
-           let elapsed = curTime - this.prevTime;
-           this.avg.addSample(elapsed);
+            var elapsed = curTime - this.prevTime;
+            this.avg.addSample(elapsed);
         }
         this.prevTime = curTime;
-    }
-
+    };
     // Get the rate in ticks/ms
-    getValue(): number {
+    Rate.prototype.getValue = function () {
         return this.avg.getValue();
-    }
-}
-
+    };
+    return Rate;
+}());
+exports.Rate = Rate;
 // Get the current time in milliseconds
-function getCurTimeInMs(): number {
+function getCurTimeInMs() {
     return (new Date()).getTime();
 }
+//# sourceMappingURL=stats.js.map
