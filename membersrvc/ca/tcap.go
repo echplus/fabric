@@ -17,6 +17,7 @@ limitations under the License.
 package ca
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/hmac"
 	"crypto/rand"
@@ -24,6 +25,8 @@ import (
 	"crypto/x509/pkix"
 	"encoding/asn1"
 	"encoding/binary"
+	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
@@ -43,6 +46,10 @@ import (
 )
 
 var tcapLogger = logging.MustGetLogger("tcap")
+
+var (
+	Distinguish = []byte("WithoutVectorOffset")
+)
 
 // TCAP serves the public GRPC interface of the TCA.
 type TCAP struct {
@@ -155,10 +162,16 @@ func (tcap *TCAP) CreateCertificateSet(ctx context.Context, in *pb.TCertCreateSe
 	id := in.Id.Id
 	raw, err := tcap.tca.eca.readCertificateByKeyUsage(id, x509.KeyUsageDigitalSignature)
 	if err != nil {
+		tcapLogger.Error(err)
 		return nil, err
 	}
 
-	return tcap.createCertificateSet(ctx, raw, in)
+	resp, err := tcap.createCertificateSet(ctx, raw, in)
+	if err != nil {
+		tcapLogger.Error(err)
+	}
+
+	return resp, err
 }
 
 func (tcap *TCAP) createCertificateSet(ctx context.Context, raw []byte, in *pb.TCertCreateSetReq) (*pb.TCertCreateSetResp, error) {
@@ -168,15 +181,9 @@ func (tcap *TCAP) createCertificateSet(ctx context.Context, raw []byte, in *pb.T
 	var timestamp = in.Ts.Seconds
 	const tcertSubjectCommonNameValue string = "Transaction Certificate"
 
-	if in.Attributes != nil && viper.GetBool("aca.enabled") {
-		attrs, err = tcap.requestAttributes(id, raw, in.Attributes)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	cert, err := x509.ParseCertificate(raw)
 	if err != nil {
+		tcapLogger.Error(err)
 		return nil, err
 	}
 
@@ -211,54 +218,177 @@ func (tcap *TCAP) createCertificateSet(ctx context.Context, raw []byte, in *pb.T
 		num = 1
 	}
 
+	var WithoutVectorOffset bool
+	var pksRaw []byte
+	if in.Attributes != nil {
+		for i, v := range in.Attributes {
+			tmp := []byte(v.AttributeName)
+			if bytes.Equal(tmp[:19], Distinguish) {
+				WithoutVectorOffset = true
+				pksRaw = tmp[19:]
+				if len(in.Attributes) == 1 {
+					in.Attributes = nil
+				} else {
+					in.Attributes = append(in.Attributes[:i], in.Attributes[i+1:]...)
+				}
+				break
+			}
+		}
+	}
+
+	if in.Attributes != nil && viper.GetBool("aca.enabled") {
+		attrs, err = tcap.requestAttributes(id, raw, in.Attributes)
+		if err != nil {
+			tcapLogger.Error(err)
+			return nil, err
+		}
+	}
+
 	// the batch of TCerts
 	var set []*pb.TCert
 
-	for i := 0; i < num; i++ {
-		tcertid := util.GenerateIntUUID()
+	if WithoutVectorOffset {
 
-		// Compute TCertIndex
-		tidx := []byte(strconv.Itoa(2*i + 1))
-		tidx = append(tidx[:], nonce[:]...)
-		tidx = append(tidx[:], Padding...)
-
-		mac := hmac.New(primitives.GetDefaultHash(), kdfKey)
-		mac.Write([]byte{1})
-		extKey := mac.Sum(nil)[:32]
-
-		mac = hmac.New(primitives.GetDefaultHash(), kdfKey)
-		mac.Write([]byte{2})
-		mac = hmac.New(primitives.GetDefaultHash(), mac.Sum(nil))
-		mac.Write(tidx)
-
-		one := new(big.Int).SetInt64(1)
-		k := new(big.Int).SetBytes(mac.Sum(nil))
-		k.Mod(k, new(big.Int).Sub(pub.Curve.Params().N, one))
-		k.Add(k, one)
-
-		tmpX, tmpY := pub.ScalarBaseMult(k.Bytes())
-		txX, txY := pub.Curve.Add(pub.X, pub.Y, tmpX, tmpY)
-		txPub := ecdsa.PublicKey{Curve: pub.Curve, X: txX, Y: txY}
-
-		// Compute encrypted TCertIndex
-		encryptedTidx, err := primitives.CBCPKCS7Encrypt(extKey, tidx)
-		if err != nil {
-			return nil, err
-		}
-
-		extensions, preK0, err := tcap.generateExtensions(tcertid, encryptedTidx, cert, attrs)
-
-		if err != nil {
-			return nil, err
-		}
-
-		spec := NewDefaultPeriodCertificateSpecWithCommonName(id, tcertSubjectCommonNameValue, tcertid, &txPub, x509.KeyUsageDigitalSignature, extensions...)
-		if raw, err = tcap.tca.createCertificateFromSpec(spec, timestamp, kdfKey, false); err != nil {
+		if len(pksRaw) == 0 {
+			err := errors.New("no pks found")
 			tcapLogger.Error(err)
 			return nil, err
 		}
 
-		set = append(set, &pb.TCert{Cert: raw, Prek0: preK0})
+		var pks []string
+		if err = json.Unmarshal(pksRaw, &pks); err != nil {
+			tcapLogger.Error(err)
+			return nil, err
+		}
+
+		if len(pks) == 0 {
+			err := errors.New("no pks found")
+			tcapLogger.Error(err)
+			return nil, err
+		}
+
+		if len(pks) > 200 {
+			err := errors.New("200 tcerts on max once time allowed")
+			tcapLogger.Error(err)
+			return nil, err
+		}
+
+		for i, v := range pks {
+
+			tmp, err := hex.DecodeString(v)
+			if err != nil {
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			pk, err := x509.ParsePKIXPublicKey(tmp)
+			if err != nil {
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			if _, ok := pk.(*ecdsa.PublicKey); !ok {
+				err := errors.New("only ecdsa publicKey allowed")
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			tcertid := util.GenerateIntUUID()
+
+			// Compute TCertIndex
+			tidx := []byte(strconv.Itoa(2*i + 1))
+			tidx = append(tidx[:], nonce[:]...)
+			tidx = append(tidx[:], Padding...)
+
+			mac := hmac.New(primitives.GetDefaultHash(), kdfKey)
+			mac.Write([]byte{1})
+			extKey := mac.Sum(nil)[:32]
+
+			//			mac = hmac.New(primitives.GetDefaultHash(), kdfKey)
+			//			mac.Write([]byte{2})
+			//			mac = hmac.New(primitives.GetDefaultHash(), mac.Sum(nil))
+			//			mac.Write(tidx)
+
+			//			one := new(big.Int).SetInt64(1)
+			//			k := new(big.Int).SetBytes(mac.Sum(nil))
+			//			k.Mod(k, new(big.Int).Sub(pub.Curve.Params().N, one))
+			//			k.Add(k, one)
+
+			//			tmpX, tmpY := pub.ScalarBaseMult(k.Bytes())
+			//			txX, txY := pub.Curve.Add(pub.X, pub.Y, tmpX, tmpY)
+			//			txPub := ecdsa.PublicKey{Curve: pub.Curve, X: txX, Y: txY}
+
+			// Compute encrypted TCertIndex
+			encryptedTidx, err := primitives.CBCPKCS7Encrypt(extKey, tidx)
+			if err != nil {
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			extensions, preK0, err := tcap.generateExtensions(tcertid, encryptedTidx, cert, attrs)
+
+			if err != nil {
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			spec := NewDefaultPeriodCertificateSpecWithCommonName(id, tcertSubjectCommonNameValue, tcertid, pk.(*ecdsa.PublicKey), x509.KeyUsageDigitalSignature, extensions...)
+			if raw, err = tcap.tca.createCertificateFromSpec(spec, timestamp, kdfKey, false); err != nil {
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			set = append(set, &pb.TCert{Cert: raw, Prek0: preK0})
+		}
+
+	} else { // default, golang
+
+		for i := 0; i < num; i++ {
+			tcertid := util.GenerateIntUUID()
+
+			// Compute TCertIndex
+			tidx := []byte(strconv.Itoa(2*i + 1))
+			tidx = append(tidx[:], nonce[:]...)
+			tidx = append(tidx[:], Padding...)
+
+			mac := hmac.New(primitives.GetDefaultHash(), kdfKey)
+			mac.Write([]byte{1})
+			extKey := mac.Sum(nil)[:32]
+
+			mac = hmac.New(primitives.GetDefaultHash(), kdfKey)
+			mac.Write([]byte{2})
+			mac = hmac.New(primitives.GetDefaultHash(), mac.Sum(nil))
+			mac.Write(tidx)
+
+			one := new(big.Int).SetInt64(1)
+			k := new(big.Int).SetBytes(mac.Sum(nil))
+			k.Mod(k, new(big.Int).Sub(pub.Curve.Params().N, one))
+			k.Add(k, one)
+
+			tmpX, tmpY := pub.ScalarBaseMult(k.Bytes())
+			txX, txY := pub.Curve.Add(pub.X, pub.Y, tmpX, tmpY)
+			txPub := ecdsa.PublicKey{Curve: pub.Curve, X: txX, Y: txY}
+
+			// Compute encrypted TCertIndex
+			encryptedTidx, err := primitives.CBCPKCS7Encrypt(extKey, tidx)
+			if err != nil {
+				return nil, err
+			}
+
+			extensions, preK0, err := tcap.generateExtensions(tcertid, encryptedTidx, cert, attrs)
+
+			if err != nil {
+				return nil, err
+			}
+
+			spec := NewDefaultPeriodCertificateSpecWithCommonName(id, tcertSubjectCommonNameValue, tcertid, &txPub, x509.KeyUsageDigitalSignature, extensions...)
+			if raw, err = tcap.tca.createCertificateFromSpec(spec, timestamp, kdfKey, false); err != nil {
+				tcapLogger.Error(err)
+				return nil, err
+			}
+
+			set = append(set, &pb.TCert{Cert: raw, Prek0: preK0})
+		}
 	}
 
 	tcap.tca.persistCertificateSet(id, timestamp, nonce, kdfKey)
