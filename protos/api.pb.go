@@ -139,6 +139,8 @@ type OpenchainClient interface {
 	GetPeers(ctx context.Context, in *google_protobuf1.Empty, opts ...grpc.CallOption) (*PeersMessage, error)
 
 	GetTransactionByID(ctx context.Context, transaction *Transaction, opts ...grpc.CallOption) (*Transaction, error)
+
+	GetTransactionStrByID(ctx context.Context, transaction *Transaction, opts ...grpc.CallOption) (*Transaction, error)
 }
 
 type openchainClient struct {
@@ -194,6 +196,15 @@ func (c *openchainClient) GetTransactionByID(ctx context.Context, transaction *T
 	return out, nil
 }
 
+func (c *openchainClient) GetTransactionStrByID(ctx context.Context, transaction *Transaction, opts ...grpc.CallOption) (*Transaction, error) {
+	out := new(Transaction)
+	err := grpc.Invoke(ctx, "/protos.Openchain/GetTransactionStrByID", transaction, out, c.cc, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Server API for Openchain service
 
 type OpenchainServer interface {
@@ -211,6 +222,8 @@ type OpenchainServer interface {
 	GetPeers(context.Context, *google_protobuf1.Empty) (*PeersMessage, error)
 
 	GetTransactionByID(ctx context.Context, transaction *Transaction) (*Transaction, error)
+
+	GetTransactionStrByID(ctx context.Context, transaction *Transaction) (*Transaction, error)
 }
 
 func RegisterOpenchainServer(s *grpc.Server, srv OpenchainServer) {
@@ -307,6 +320,24 @@ func _Openchain_GetTransactionByID_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Openchain_GetTransactionStrByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Transaction)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(OpenchainServer).GetTransactionStrByID(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/protos.Openchain/GetTransactionStrByID",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(OpenchainServer).GetTransactionStrByID(ctx, req.(*Transaction))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Openchain_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "protos.Openchain",
 	HandlerType: (*OpenchainServer)(nil),
@@ -330,6 +361,10 @@ var _Openchain_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTransactionByID",
 			Handler:    _Openchain_GetTransactionByID_Handler,
+		},
+		{
+			MethodName: "GetTransactionStrByID",
+			Handler:    _Openchain_GetTransactionStrByID_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
