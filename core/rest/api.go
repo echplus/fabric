@@ -298,7 +298,7 @@ func (s *ServerOpenchain) GetTransactionStrByID(ctx context.Context, trans *pb.T
 		return nil, err
 	}
 
-	return &pb.Transaction{Payload: transaction.Bytes()}, nil
+	return &pb.Transaction{Txid: string(transaction.Bytes())}, nil
 }
 
 // GetPeers returns a list of all peer nodes currently connected to the target peer.
