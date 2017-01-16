@@ -17,6 +17,8 @@ limitations under the License.
 package rest
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -275,6 +277,28 @@ func (s *ServerOpenchain) GetTransactionByID(ctx context.Context, trans *pb.Tran
 		}
 	}
 	return transaction, nil
+}
+
+func (s *ServerOpenchain) GetTransactionStrByID(ctx context.Context, trans *pb.Transaction) (*pb.Transaction, error) {
+	tx, err := s.GetTransactionByID(ctx, trans)
+	if err != nil {
+		restLogger.Error(err)
+		return nil, err
+	}
+
+	transactionInfo, err := json.Marshal(tx)
+	if err != nil {
+		restLogger.Error(err)
+		return nil, err
+	}
+
+	var transaction bytes.Buffer
+	if err := json.Indent(&transaction, transactionInfo, "", " "); err != nil {
+		restLogger.Error(err)
+		return nil, err
+	}
+
+	return &pb.Transaction{Txid: string(transaction.Bytes())}, nil
 }
 
 // GetPeers returns a list of all peer nodes currently connected to the target peer.
