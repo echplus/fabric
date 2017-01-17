@@ -48,7 +48,10 @@ func (sqks *SqlDB) ReadUser(userinfo *UsersInfo, userid string) error {
 	rows := db.QueryRow("select user_id,token,priv,pkchain from t_user where user_id=?", userid)
 	err := rows.Scan(&userinfo.UserId, &userinfo.Token, &userinfo.Priv, &userinfo.PkChain)
 	if err != nil {
-		logger.Error(err)
+		if err.Error() != "sql: no rows in result set" {
+			logger.Error(err)
+			return nil
+		}
 		return err
 	}
 	return nil
