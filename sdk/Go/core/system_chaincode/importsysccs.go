@@ -17,9 +17,9 @@ limitations under the License.
 package system_chaincode
 
 import (
-	"github.com/fabric_sdk_golang/core/system_chaincode/api"
+	"github.com/hyperledger/fabric/sdk/Go/core/system_chaincode/api"
 	//import system chain codes here
-	"github.com/fabric_sdk_golang/bddtests/syschaincode/noop"
+	"github.com/hyperledger/fabric/sdk/Go/bddtests/syschaincode/noop"
 )
 
 //see systemchaincode_test.go for an example using "sample_syscc"

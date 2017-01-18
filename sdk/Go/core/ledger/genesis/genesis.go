@@ -19,7 +19,7 @@ package genesis
 import (
 	"sync"
 
-	"github.com/hyperledger/fabric/Go/core/ledger"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger"
 	"github.com/op/go-logging"
 )
 

@@ -158,7 +158,7 @@ func (tcap *TCAP) requestAttributes(id string, ecert []byte, attrs []*pb.TCertAt
 // CreateCertificateSet requests the creation of a new transaction certificate set by the TCA.
 func (tcap *TCAP) CreateCertificateSet(ctx context.Context, in *pb.TCertCreateSetReq) (*pb.TCertCreateSetResp, error) {
 	tcapLogger.Debugf("grpc TCAP:CreateCertificateSet")
-
+	tcapLogger.Debug("CreateCertificateSet in:", in)
 	id := in.Id.Id
 	raw, err := tcap.tca.eca.readCertificateByKeyUsage(id, x509.KeyUsageDigitalSignature)
 	if err != nil {

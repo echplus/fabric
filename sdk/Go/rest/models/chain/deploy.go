@@ -10,6 +10,7 @@ import (
 )
 
 func (chainImpl *ChainImpl) ChainDeploy(req *util.DeployRQ) (string, error) {
+	logs.Debug("ChainDeploy req:", req)
 	userImpl := &user.UserImpl{}
 	mbsrvc := api.InitMbImpl()
 	err := userImpl.Login(req.UserID, req.UserToken)

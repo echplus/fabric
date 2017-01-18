@@ -122,7 +122,6 @@ func (mb *memberImpl) Deploy(path string, args []string, metadata []byte, userid
 		logger.Error(err)
 		return nil, err
 	}
-
 	resp, err := peer.ProcessTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error(err)

@@ -14,5 +14,6 @@ func init() {
 	beego.Router("/monitor/network", &controllers.NetworkController{})
 	beego.Router("/chain/blocks/:id", &controllers.BlockController{})
 	beego.Router("/chain", &controllers.ChainController{})
+	beego.Router("/chain/blocks/count", &controllers.BlockCountController{})
 	beego.Router("/chain/transactions/:id", &controllers.TransactionController{})
 }

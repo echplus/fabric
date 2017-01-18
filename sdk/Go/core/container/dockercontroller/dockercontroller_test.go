@@ -24,8 +24,8 @@ import (
 	"github.com/fsouza/go-dockerclient"
 	"github.com/spf13/viper"
 
-	"github.com/hyperledger/fabric/core/config"
-	"github.com/hyperledger/fabric/core/ledger/testutil"
+	"github.com/hyperledger/fabric/sdk/Go/core/config"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/testutil"
 )
 
 func TestHostConfig(t *testing.T) {

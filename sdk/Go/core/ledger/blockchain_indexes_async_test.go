@@ -22,8 +22,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fabric_sdk_golang/core/ledger/testutil"
-	"github.com/fabric_sdk_golang/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/testutil"
+	"github.com/hyperledger/fabric/sdk/Go/protos"
 	"github.com/tecbot/gorocksdb"
 )
 
