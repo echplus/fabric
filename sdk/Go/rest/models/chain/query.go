@@ -20,6 +20,7 @@ func (chainImpl *ChainImpl) ChainQuery(req *util.QueryRQ) (string, error) {
 	resp, err := mbsrvc.Query(req.ChainID, req.Args, req.TxID, []byte(req.Meta), req.UserID)
 	if err != nil {
 		logs.Error(err)
+		return err.Error(), err
 	}
 	return string(resp.Msg), err
 }

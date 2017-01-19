@@ -20,10 +20,10 @@ import (
 	"os"
 	"testing"
 
-	"github.com/hyperledger/fabric/core/ledger/statemgmt"
-	"github.com/hyperledger/fabric/core/ledger/testutil"
-	"github.com/hyperledger/fabric/core/util"
-	"github.com/hyperledger/fabric/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/testutil"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	"github.com/hyperledger/fabric/sdk/Go/protos"
 	"github.com/tecbot/gorocksdb"
 	"golang.org/x/net/context"
 )

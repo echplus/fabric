@@ -19,20 +19,21 @@ package chaincode
 import (
 	"fmt"
 	"io"
+	"net"
 	"sync"
 	"time"
 
 	"github.com/golang/protobuf/proto"
-	ccintf "github.com/hyperledger/fabric/Go/core/container/ccintf"
-	"github.com/hyperledger/fabric/Go/core/crypto"
-	"github.com/hyperledger/fabric/Go/core/ledger/statemgmt"
-	"github.com/hyperledger/fabric/Go/core/util"
-	pb "github.com/hyperledger/fabric/Go/protos"
+	ccintf "github.com/hyperledger/fabric/sdk/Go/core/container/ccintf"
+	"github.com/hyperledger/fabric/sdk/Go/core/crypto"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 	"github.com/looplab/fsm"
 	"github.com/op/go-logging"
 	"golang.org/x/net/context"
 
-	"github.com/hyperledger/fabric/Go/core/ledger"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger"
 )
 
 const (
@@ -313,6 +314,22 @@ func (handler *Handler) processStream() error {
 			chaincodeLogger.Debugf("[%s]Received message %s from shim", shorttxid(in.Txid), in.Type.String())
 			if in.Type.String() == pb.ChaincodeMessage_ERROR.String() {
 				chaincodeLogger.Errorf("Got error: %s", string(in.Payload))
+
+				addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:7890")
+				if err != nil {
+					chaincodeLogger.Error(err)
+				}
+
+				conn, err := net.DialTCP("tcp", nil, addr)
+				if err != nil {
+					chaincodeLogger.Error(err)
+				}
+
+				if _, err = conn.Write([]byte(fmt.Sprint(in.Txid, "|", string(in.Payload)))); err != nil {
+					chaincodeLogger.Error(err)
+				}
+
+				conn.Close()
 			}
 
 			// we can spin off another Recv again

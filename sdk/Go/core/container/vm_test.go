@@ -24,9 +24,9 @@ import (
 	"os"
 	"testing"
 
-	cutil "github.com/hyperledger/fabric/core/container/util"
-	"github.com/hyperledger/fabric/core/util"
-	pb "github.com/hyperledger/fabric/protos"
+	cutil "github.com/hyperledger/fabric/sdk/Go/core/container/util"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 	"golang.org/x/net/context"
 )
 

@@ -91,6 +91,7 @@ func (mbsrvc *memberImpl) callTCACreateCertificateSet(enrollPrivKey *ecdsa.Priva
 	// 3. Append the signature
 	req.Sig = &pb.Signature{Type: pb.CryptoType_ECDSA, R: R, S: S}
 
+	logger.Debug("CreateCertificateSet req:", req)
 	// 4. Send request
 	certSet, err := tcap.CreateCertificateSet(context.Background(), req)
 	if err != nil {
@@ -284,7 +285,7 @@ func (mbsrvc *memberImpl) calculateAttributesHash(attributes []string) (attrHash
 func (mbsrvc *memberImpl) getTcerts(userName string, priv *ecdsa.PrivateKey, num int) (*list.List, error) {
 	attributes := []string{"role"}
 	attributeHash := mbsrvc.calculateAttributesHash(attributes)
-	tCerts, err := mbsrvc.getTCertsFromTCA(priv, userName, attributeHash, attributes, num)
+	tCerts, err := mbsrvc.getTCertsFromTCA(priv, userName, attributeHash, nil, num)
 	if err != nil {
 		return nil, err
 	}

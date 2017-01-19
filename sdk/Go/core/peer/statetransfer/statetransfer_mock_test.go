@@ -24,9 +24,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/hyperledger/fabric/core/ledger/statemgmt"
-	"github.com/hyperledger/fabric/core/peer"
-	"github.com/hyperledger/fabric/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt"
+	"github.com/hyperledger/fabric/sdk/Go/core/peer"
+	"github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 type mockRequest int

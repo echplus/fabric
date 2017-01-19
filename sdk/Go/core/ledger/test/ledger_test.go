@@ -22,10 +22,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/ledger/statemgmt"
-	"github.com/hyperledger/fabric/core/util"
-	"github.com/hyperledger/fabric/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	"github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 func appendAll(content ...[]byte) []byte {

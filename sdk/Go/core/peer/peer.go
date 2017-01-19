@@ -17,6 +17,7 @@ limitations under the License.
 package peer
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -33,15 +34,19 @@ import (
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
 
-	"github.com/fabric_sdk_golang/core/comm"
-	"github.com/fabric_sdk_golang/core/crypto"
-	"github.com/fabric_sdk_golang/core/db"
-	"github.com/fabric_sdk_golang/core/discovery"
-	"github.com/fabric_sdk_golang/core/ledger"
-	"github.com/fabric_sdk_golang/core/ledger/statemgmt"
-	"github.com/fabric_sdk_golang/core/ledger/statemgmt/state"
-	"github.com/fabric_sdk_golang/core/util"
-	pb "github.com/fabric_sdk_golang/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/comm"
+	"github.com/hyperledger/fabric/sdk/Go/core/crypto"
+	"github.com/hyperledger/fabric/sdk/Go/core/db"
+	"github.com/hyperledger/fabric/sdk/Go/core/discovery"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt/state"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
+)
+
+var (
+	result = make(map[string]chan string, 10000)
 )
 
 // Peer provides interface for a peer
@@ -241,6 +246,7 @@ func NewPeerWithHandler(secHelperFunc func() crypto.Peer, handlerFact HandlerFac
 // NewPeerWithEngine returns a Peer which uses the supplied handler factory function for creating new handlers on new Chat service invocations.
 func NewPeerWithEngine(secHelperFunc func() crypto.Peer, engFactory EngineFactory) (peer *Impl, err error) {
 	peer = new(Impl)
+	peer.invokeResult()
 	peerNodes := peer.initDiscovery()
 
 	peer.handlerMap = &handlerMap{m: make(map[pb.PeerID]MessageHandler)}
@@ -508,10 +514,38 @@ func (p *Impl) sendTransactionsToLocalEngine(transaction *pb.Transaction) *pb.Re
 		return &pb.Response{Status: pb.Response_FAILURE, Msg: []byte(fmt.Sprintf("Error sending transaction to local engine: %s", err))}
 	}
 
+	result[transaction.Txid] = make(chan string)
+	defer delete(result, transaction.Txid)
+
 	var response *pb.Response
 	msg := &pb.Message{Type: pb.Message_CHAIN_TRANSACTION, Payload: data, Timestamp: util.CreateUtcTimestamp()}
 	peerLogger.Debugf("Sending message %s with timestamp %v to local engine", msg.Type, msg.Timestamp)
 	response = p.engine.ProcessTransactionMsg(msg, transaction)
+
+	if transaction.Type == pb.Transaction_CHAINCODE_QUERY {
+		return response
+	} else if transaction.Type == pb.Transaction_CHAINCODE_INVOKE {
+
+		if response.Status != pb.Response_SUCCESS {
+			return response
+		}
+
+		wait := viper.GetInt("wait_invoke_returnmsg")
+		if wait == 0 {
+			wait = 5
+		}
+		ttl := time.Second * time.Duration(wait)
+
+		select {
+		case errMsg := <-result[transaction.Txid]:
+			if errMsg != "" {
+				response.Status = pb.Response_FAILURE
+				response.Msg = []byte(errMsg)
+			}
+		case <-time.After(ttl):
+			// do nothing
+		}
+	}
 
 	return response
 }
@@ -886,4 +920,61 @@ func (p *Impl) LoadDiscoveryList() ([]string, error) {
 		peerLogger.Error(err)
 	}
 	return addresses.Addresses, err
+}
+
+func (p *Impl) invokeResult() {
+
+	go func() {
+		addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:7890")
+		if err != nil {
+			peerLogger.Fatal(err)
+		}
+
+		peerLogger.Info("trying to listen on", addr.String())
+		listener, err := net.ListenTCP("tcp", addr)
+		if err != nil {
+			peerLogger.Fatal(err)
+		}
+		defer listener.Close()
+
+		for {
+			conn, err := listener.AcceptTCP()
+			if err != nil {
+				peerLogger.Error(err)
+				continue
+			}
+
+			go func(conn *net.TCPConn) {
+				defer conn.Close()
+
+				payload := bytes.NewBufferString("")
+				buf := make([]byte, 1024)
+
+				for {
+					if _, err := conn.Read(buf); err != nil {
+						if _, e := payload.Write(buf); e != nil {
+							peerLogger.Error(err)
+							return
+						}
+
+						if err == io.EOF {
+							break
+						} else {
+							peerLogger.Error(err)
+							return
+						}
+					}
+				}
+
+				buf = payload.Bytes()
+				index0 := bytes.IndexByte(buf, '|')
+				index1 := bytes.IndexByte(buf, '\x00')
+
+				if ch, ok := result[string(buf[:index0])]; ok {
+					ch <- string(buf[index0+1 : index1])
+				}
+
+			}(conn)
+		}
+	}()
 }

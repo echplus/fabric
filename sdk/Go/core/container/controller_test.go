@@ -26,8 +26,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric/core/container/ccintf"
-	pb "github.com/hyperledger/fabric/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/container/ccintf"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 
 	"golang.org/x/net/context"
 )

@@ -19,7 +19,7 @@ package trie
 import (
 	"testing"
 
-	"github.com/hyperledger/fabric/core/ledger/testutil"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/testutil"
 )
 
 func TestTrieNode_MarshalUnmarshal_NoValue_NoChildren(t *testing.T) {

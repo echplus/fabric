@@ -19,7 +19,7 @@ package peer
 import (
 	"sync"
 
-	pb "github.com/fabric_sdk_golang/protos"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 //-----------------------------------------------------------------------------

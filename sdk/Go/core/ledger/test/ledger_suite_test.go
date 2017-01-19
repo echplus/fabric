@@ -23,8 +23,8 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/hyperledger/fabric/core/db"
-	"github.com/hyperledger/fabric/core/ledger"
+	"github.com/hyperledger/fabric/sdk/Go/core/db"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger"
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
 )
