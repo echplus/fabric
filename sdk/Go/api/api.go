@@ -24,6 +24,7 @@ type Member interface {
 	Query(name string, args []string, txid string, metadata []byte, userid string) (*pb.Response, error)
 	Network() (string, error)
 	GetBlocks(id string) (string, error)
+	GetBlocksCount() (string, error)
 	GetChain() (string, error)
 	GetTransactions(txid string) (string, error)
 }

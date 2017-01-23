@@ -122,11 +122,15 @@ func (mb *memberImpl) Deploy(path string, args []string, metadata []byte, userid
 		logger.Error(err)
 		return nil, err
 	}
-
 	resp, err := peer.ProcessTransaction(context.Background(), tx)
 	if err != nil {
 		logger.Error(err)
 		return nil, err
+	}
+
+	if resp.Status == pb.Response_FAILURE {
+		logger.Error(string(resp.Msg))
+		return nil, errors.New(string(resp.Msg))
 	}
 
 	logger.Info("deploy resp", resp)
@@ -234,8 +238,13 @@ func (mb *memberImpl) Invoke(name string, args []string, txid string, metadata [
 		return nil, err
 	}
 
+	if resp.Status == pb.Response_FAILURE {
+		logger.Error(string(resp.Msg))
+		return nil, errors.New(string(resp.Msg))
+	}
+
 	logger.Info("invoke resp", resp)
-	return resp, nil
+	return resp, err
 }
 
 func (mb *memberImpl) Query(name string, args []string, txid string, metadata []byte, userid string) (*pb.Response, error) {
@@ -338,12 +347,12 @@ func (mb *memberImpl) Query(name string, args []string, txid string, metadata []
 		return nil, err
 	}
 
-	if viper.GetBool("security.privacy") {
-		if resp.Status == pb.Response_FAILURE {
-			logger.Error(string(resp.Msg))
-			return nil, err
-		}
+	if resp.Status == pb.Response_FAILURE {
+		logger.Error(string(resp.Msg))
+		return nil, errors.New(string(resp.Msg))
+	}
 
+	if viper.GetBool("security.privacy") {
 		if resp.Msg, err = decrypt.DecryptQueryResult(tx, resp.Msg); nil != err {
 			logger.Errorf("Failed decrypting query transaction result %s", string(resp.Msg[:]))
 			return nil, err
@@ -351,5 +360,5 @@ func (mb *memberImpl) Query(name string, args []string, txid string, metadata []
 	}
 
 	logger.Info("query resp", resp)
-	return resp, nil
+	return resp, err
 }

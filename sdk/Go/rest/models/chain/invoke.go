@@ -20,6 +20,7 @@ func (chainImpl *ChainImpl) ChainInvoke(req *util.InvokeRQ) (string, error) {
 	resp, err := mbsrvc.Invoke(req.ChainID, req.Args, req.TxID, []byte(req.Meta), req.UserID)
 	if err != nil {
 		logs.Error(err)
+		return err.Error(), err
 	}
 	return string(resp.Msg), err
 }

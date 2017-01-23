@@ -19,7 +19,7 @@ package samplesyscc
 import (
 	"errors"
 
-	"github.com/fabric_sdk_golang/core/chaincode/shim"
+	"github.com/hyperledger/fabric/sdk/Go/core/chaincode/shim"
 )
 
 // SampleSysCC example simple Chaincode implementation

@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/fabric_sdk_golang/core/config"
+	"github.com/hyperledger/fabric/sdk/Go/core/config"
 	"google.golang.org/grpc"
 )
 

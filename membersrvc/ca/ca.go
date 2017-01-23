@@ -220,7 +220,7 @@ func (spec *CertificateSpec) GetExtensions() *[]pkix.Extension {
 type TableInitializer func(*sql.DB) error
 
 func initializeCommonTables(db *sql.DB) error {
-	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Certificates (row INTEGER PRIMARY KEY AUTO_INCREMENT, id VARCHAR(64), timestamp INTEGER, `usage` INTEGER, cert BLOB, hash BLOB, kdfkey BLOB)"); err != nil {
+	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Certificates (row INTEGER PRIMARY KEY AUTO_INCREMENT, id VARCHAR(64), timestamp BIGINT, `usage` INTEGER, cert BLOB, hash BLOB, kdfkey BLOB)"); err != nil {
 		return err
 	}
 	if _, err := db.Exec("CREATE TABLE IF NOT EXISTS Users (row INTEGER PRIMARY KEY AUTO_INCREMENT, id VARCHAR(64), enrollmentId VARCHAR(100), role INTEGER, metadata VARCHAR(256), token BLOB, state INTEGER, `key` BLOB)"); err != nil {
@@ -404,7 +404,6 @@ func (ca *CA) persistCertificate(id string, timestamp int64, usage x509.KeyUsage
 	hash := primitives.NewHash()
 	hash.Write(certRaw)
 	var err error
-
 	if _, err = ca.db.Exec("INSERT INTO Certificates (id, timestamp, `usage`, cert, hash, kdfkey) VALUES (?, ?, ?, ?, ?, ?)", id, timestamp, usage, certRaw, hash.Sum(nil), kdfKey); err != nil {
 		caLogger.Error(err)
 	}

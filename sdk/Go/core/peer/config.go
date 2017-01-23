@@ -35,7 +35,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	pb "github.com/fabric_sdk_golang/protos"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 // Is the configuration cached?

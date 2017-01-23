@@ -25,8 +25,8 @@ import (
 	"github.com/looplab/fsm"
 	"github.com/spf13/viper"
 
-	"github.com/fabric_sdk_golang/core/ledger/statemgmt"
-	pb "github.com/fabric_sdk_golang/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger/statemgmt"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 const DefaultSyncSnapshotTimeout time.Duration = 60 * time.Second

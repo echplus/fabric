@@ -10,6 +10,7 @@ import (
 )
 
 func (chainImpl *ChainImpl) ChainDeploy(req *util.DeployRQ) (string, error) {
+	logs.Debug("ChainDeploy req:", req)
 	userImpl := &user.UserImpl{}
 	mbsrvc := api.InitMbImpl()
 	err := userImpl.Login(req.UserID, req.UserToken)
@@ -20,6 +21,7 @@ func (chainImpl *ChainImpl) ChainDeploy(req *util.DeployRQ) (string, error) {
 	resp, err := mbsrvc.Deploy(req.Path, req.Args, []byte(req.Meta), req.UserID)
 	if err != nil {
 		logs.Error(err)
+		return err.Error(), err
 	}
 	return string(resp.Msg), err
 }

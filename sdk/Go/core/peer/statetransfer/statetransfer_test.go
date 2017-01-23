@@ -25,9 +25,9 @@ import (
 	"testing"
 	"time"
 
-	configSetup "github.com/hyperledger/fabric/core/config"
-	"github.com/hyperledger/fabric/core/peer"
-	"github.com/hyperledger/fabric/protos"
+	configSetup "github.com/hyperledger/fabric/sdk/Go/core/config"
+	"github.com/hyperledger/fabric/sdk/Go/core/peer"
+	"github.com/hyperledger/fabric/sdk/Go/protos"
 
 	"github.com/op/go-logging"
 )

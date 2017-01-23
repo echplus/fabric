@@ -23,13 +23,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hyperledger/fabric/core/chaincode"
-	"github.com/hyperledger/fabric/core/db"
-	"github.com/hyperledger/fabric/core/ledger"
-	"github.com/hyperledger/fabric/core/system_chaincode/api"
-	"github.com/hyperledger/fabric/core/system_chaincode/samplesyscc"
-	"github.com/hyperledger/fabric/core/util"
-	pb "github.com/hyperledger/fabric/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/chaincode"
+	"github.com/hyperledger/fabric/sdk/Go/core/db"
+	"github.com/hyperledger/fabric/sdk/Go/core/ledger"
+	"github.com/hyperledger/fabric/sdk/Go/core/system_chaincode/api"
+	"github.com/hyperledger/fabric/sdk/Go/core/system_chaincode/samplesyscc"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -109,7 +109,7 @@ func TestExecuteDeploySysChaincode(t *testing.T) {
 		{
 			Enabled:   true,
 			Name:      "sample_syscc",
-			Path:      "github.com/hyperledger/fabric/core/system_chaincode/samplesyscc",
+			Path:      "github.com/hyperledger/fabric/sdk/Go/core/system_chaincode/samplesyscc",
 			InitArgs:  [][]byte{},
 			Chaincode: &samplesyscc.SampleSysCC{},
 		},

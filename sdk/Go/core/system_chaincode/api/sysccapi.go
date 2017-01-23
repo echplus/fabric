@@ -21,11 +21,11 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/fabric_sdk_golang/core/chaincode"
-	"github.com/fabric_sdk_golang/core/chaincode/shim"
-	"github.com/fabric_sdk_golang/core/container/inproccontroller"
-	"github.com/fabric_sdk_golang/core/peer"
-	"github.com/fabric_sdk_golang/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/chaincode"
+	"github.com/hyperledger/fabric/sdk/Go/core/chaincode/shim"
+	"github.com/hyperledger/fabric/sdk/Go/core/container/inproccontroller"
+	"github.com/hyperledger/fabric/sdk/Go/core/peer"
+	"github.com/hyperledger/fabric/sdk/Go/protos"
 	"github.com/op/go-logging"
 	"github.com/spf13/viper"
 )

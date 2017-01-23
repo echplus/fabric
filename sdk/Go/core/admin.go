@@ -25,7 +25,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	pb "github.com/hyperledger/fabric/Go/protos"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 var log = logging.MustGetLogger("server")

@@ -30,13 +30,13 @@ import (
 	"sync"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/hyperledger/fabric/Go/core/chaincode"
-	"github.com/hyperledger/fabric/Go/core/chaincode/platforms"
-	"github.com/hyperledger/fabric/Go/core/container"
-	crypto "github.com/hyperledger/fabric/Go/core/crypto"
-	"github.com/hyperledger/fabric/Go/core/peer"
-	"github.com/hyperledger/fabric/Go/core/util"
-	pb "github.com/hyperledger/fabric/Go/protos"
+	"github.com/hyperledger/fabric/sdk/Go/core/chaincode"
+	"github.com/hyperledger/fabric/sdk/Go/core/chaincode/platforms"
+	"github.com/hyperledger/fabric/sdk/Go/core/container"
+	crypto "github.com/hyperledger/fabric/sdk/Go/core/crypto"
+	"github.com/hyperledger/fabric/sdk/Go/core/peer"
+	"github.com/hyperledger/fabric/sdk/Go/core/util"
+	pb "github.com/hyperledger/fabric/sdk/Go/protos"
 )
 
 var devopsLogger = logging.MustGetLogger("devops")
