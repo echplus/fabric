@@ -106,6 +106,20 @@ func (s *ServerOpenchain) GetBlockchainInfo(ctx context.Context, e *empty.Empty)
 			return nil, err
 		}
 
+		raw, err := json.Marshal(blockchainInfo)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		var marshalJson bytes.Buffer
+		if err := json.Indent(&marshalJson, raw, "", " "); err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		blockchainInfo.MarshalJson = string(marshalJson.Bytes())
+
 		return blockchainInfo, nil
 	}
 
@@ -143,6 +157,20 @@ func (s *ServerOpenchain) GetBlockByNumber(ctx context.Context, num *pb.BlockNum
 			restLogger.Error(err)
 			return nil, err
 		}
+
+		raw, err := json.Marshal(blockByNumber)
+		if err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		var marshalJson bytes.Buffer
+		if err := json.Indent(&marshalJson, raw, "", " "); err != nil {
+			restLogger.Error(err)
+			return nil, err
+		}
+
+		blockByNumber.MarshalJson = string(marshalJson.Bytes())
 
 		return blockByNumber, nil
 	}
@@ -303,7 +331,27 @@ func (s *ServerOpenchain) GetTransactionStrByID(ctx context.Context, trans *pb.T
 
 // GetPeers returns a list of all peer nodes currently connected to the target peer.
 func (s *ServerOpenchain) GetPeers(ctx context.Context, e *empty.Empty) (*pb.PeersMessage, error) {
-	return s.peerInfo.GetPeers()
+	peers, err := s.peerInfo.GetPeers()
+	if err != nil {
+		restLogger.Error(err)
+		return nil, err
+	}
+
+	raw, err := json.Marshal(peers)
+	if err != nil {
+		restLogger.Error(err)
+		return nil, err
+	}
+
+	var marshalJson bytes.Buffer
+	if err := json.Indent(&marshalJson, raw, "", " "); err != nil {
+		restLogger.Error(err)
+		return nil, err
+	}
+
+	peers.MarshalJson = string(marshalJson.Bytes())
+
+	return peers, nil
 }
 
 // GetPeerEndpoint returns PeerEndpoint info of target peer.

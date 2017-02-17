@@ -261,6 +261,7 @@ type Block struct {
 	PreviousBlockHash []byte                     `protobuf:"bytes,5,opt,name=previousBlockHash,proto3" json:"previousBlockHash,omitempty"`
 	ConsensusMetadata []byte                     `protobuf:"bytes,6,opt,name=consensusMetadata,proto3" json:"consensusMetadata,omitempty"`
 	NonHashData       *NonHashData               `protobuf:"bytes,7,opt,name=nonHashData" json:"nonHashData,omitempty"`
+	MarshalJson       string                     `protobuf:"bytes,8,opt,name=marshalJson" json:"marshalJson,omitempty"`
 }
 
 func (m *Block) Reset()                    { *m = Block{} }
@@ -295,6 +296,7 @@ type BlockchainInfo struct {
 	Height            uint64 `protobuf:"varint,1,opt,name=height" json:"height,omitempty"`
 	CurrentBlockHash  []byte `protobuf:"bytes,2,opt,name=currentBlockHash,proto3" json:"currentBlockHash,omitempty"`
 	PreviousBlockHash []byte `protobuf:"bytes,3,opt,name=previousBlockHash,proto3" json:"previousBlockHash,omitempty"`
+	MarshalJson       string `protobuf:"bytes,4,opt,name=marshalJson" json:"marshalJson,omitempty"`
 }
 
 func (m *BlockchainInfo) Reset()                    { *m = BlockchainInfo{} }
@@ -371,7 +373,8 @@ func (m *PeerEndpoint) GetID() *PeerID {
 }
 
 type PeersMessage struct {
-	Peers []*PeerEndpoint `protobuf:"bytes,1,rep,name=peers" json:"peers,omitempty"`
+	Peers       []*PeerEndpoint `protobuf:"bytes,1,rep,name=peers" json:"peers,omitempty"`
+	MarshalJson string          `protobuf:"bytes,2,opt,name=marshalJson" json:"marshalJson,omitempty"`
 }
 
 func (m *PeersMessage) Reset()                    { *m = PeersMessage{} }
