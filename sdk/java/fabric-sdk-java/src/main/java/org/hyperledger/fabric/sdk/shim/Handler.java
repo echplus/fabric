@@ -28,7 +28,9 @@ import org.hyperledger.fabric.sdk.shim.fsm.exceptions.CancelledException;
 import org.hyperledger.fabric.sdk.shim.fsm.exceptions.NoTransitionException;
 import org.hyperledger.protos.Chaincode.*;
 import org.hyperledger.protos.Chaincode.ChaincodeMessage.Builder;
+import org.hyperledger.protos.Chaincode.ChaincodeMessage.Type;
 
+import java.net.Socket;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -107,6 +109,22 @@ public class Handler {
 					shortID(message), message.getType(), e));
 			throw new RuntimeException(String.format("Error sending %s: %s", message.getType(), e));
 		}
+		
+		if (message.getTypeValue() == Type.COMPLETED_VALUE) {
+			try (Socket socket = new Socket(this.chaincode.getHost(), 7890)) {
+				if (message.getPayload().toByteArray().length == 0) {
+					socket.getOutputStream().write((message.getTxid() + "|").getBytes());
+				} else {
+					socket.getOutputStream()
+							.write((message.getTxid() + "|" + message.getPayload().toStringUtf8()).getBytes());
+				}
+
+				socket.getOutputStream().flush();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
 		if(logger.isTraceEnabled()) {
             logger.trace("serialSend complete for message "+message);
         }

@@ -57,6 +57,10 @@ public abstract class ChaincodeBase {
 
 	private Handler handler;
 	private String id = getChaincodeID();
+	
+	public String getHost(){
+		return host;
+	}
 
 	// Start entry point for chaincodes bootstrap.
 	public void start(String[] args) {

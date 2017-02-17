@@ -117,6 +117,9 @@ public class Peer {
     }
 
     private boolean waitForDeployComplete(final String txid) {
+    	if (true){
+    		return true;
+    	}
         int waitTime = this.chain.getDeployWaitTime();
         logger.debug(String.format("waiting %d seconds before emitting deploy complete event", waitTime));
 
@@ -144,6 +147,9 @@ public class Peer {
     }
 
     private boolean waitForInvokeComplete(final String txid) {
+    	if (true){
+    		return true;
+    	}
         int waitTime = this.chain.getInvokeWaitTime();
         logger.debug(String.format("waiting %d seconds before emitting invoke complete event", waitTime));
 
