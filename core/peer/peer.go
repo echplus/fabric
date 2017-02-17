@@ -925,7 +925,7 @@ func (p *Impl) LoadDiscoveryList() ([]string, error) {
 func (p *Impl) invokeResult() {
 
 	go func() {
-		addr, err := net.ResolveTCPAddr("tcp", "127.0.0.1:7890")
+		addr, err := net.ResolveTCPAddr("tcp", ":7890")
 		if err != nil {
 			peerLogger.Fatal(err)
 		}
@@ -968,7 +968,7 @@ func (p *Impl) invokeResult() {
 
 				buf = payload.Bytes()
 				index0 := bytes.IndexByte(buf, '|')
-				index1 := bytes.IndexByte(buf, '\x00')
+				index1 := bytes.IndexByte(buf, byte(0))
 
 				if ch, ok := result[string(buf[:index0])]; ok {
 					ch <- string(buf[index0+1 : index1])
