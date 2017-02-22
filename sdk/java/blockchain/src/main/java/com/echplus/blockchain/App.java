@@ -38,7 +38,7 @@ public class App {
 
 	private static final Log logger = LogFactory.getLog(App.class);
 	private static final Boolean Confidential = true;
-	private static final String CCID = "f29972f989ad7c8093faf6c92bcd76bd612abc4d748a9eb96ff1ff884bbb671c";
+	private static final String CCID = "b371b1947908f8d3a45cbda418b3e989498c240dce0b9a00dfb5e5b0a666c48f";
 	private static final String CCName = "sayaka";
 
 	public static void main(String[] args) throws Exception {
@@ -58,20 +58,20 @@ public class App {
 
 		app.Registar(chain);
 
-		// app.Deploy(chain);
+//		 app.Deploy(chain);
 
-		// app.Invoke(chain, "summary");
-		// app.Invoke(chain, "subtraction");
-		// app.Invoke(chain, "err");
+//		 app.Invoke(chain, "summary");
+//		 app.Invoke(chain, "subtraction");
+//		 app.Invoke(chain, "err");
 
-		// app.Query(chain,"kv");
-		// app.Query(chain,"table");
+//		 app.Query(chain,"kv");
+//		 app.Query(chain,"table");
 
 		// app.Odds(chain, "63ed5c50-94ff-414f-a926-f6a1bcbafcfc");
 
 		/** call golang chaincode begin **/
-		// app.PutValue(chain,"5000","0");
-		// app.TotalSize(chain);
+//		 app.PutValue(chain,"5000","0");
+//		 app.TotalSize(chain);
 		/** call golang chaincode end **/
 	}
 
@@ -134,7 +134,7 @@ public class App {
 
 	public void Query(Chain chain, String oper) throws Exception {
 		QueryRequest request = new QueryRequest();
-		request.setArgs(new ArrayList<>(Arrays.asList(oper, "index2")));
+		request.setArgs(new ArrayList<>(Arrays.asList(oper, "index1")));
 		request.setChaincodeID(CCID);
 		request.setChaincodeName(CCName);
 		request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
