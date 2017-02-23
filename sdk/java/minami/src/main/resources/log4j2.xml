@@ -16,9 +16,11 @@
 	</Appenders>
 
 	<Loggers>
-		<Logger name="org.springframework." level="error" />
+		<Logger name="org.springframework" level="error" />
 		<Logger name="minami.com.echplus" level="info" />
-		<Root level="error">
+		<Logger name="org.springframework.boot.context.embedded.tomcat" level="info" />
+		
+		<Root level="warn">
 			<AppenderRef ref="Console" />
 			<!-- <AppenderRef ref="MyFile" level="trace" /> -->
 		</Root>
