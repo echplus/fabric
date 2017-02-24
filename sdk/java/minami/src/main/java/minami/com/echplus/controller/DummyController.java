@@ -1,8 +1,7 @@
-package minami.com.echplus.dummy;
+package minami.com.echplus.controller;
 
 import java.util.Map;
 import java.util.HashMap;
-import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -15,32 +14,23 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 
-import minami.com.echplus.domain.User;
-import minami.com.echplus.mapper.UserMapper;
+import minami.com.echplus.service.DummySvc;
 
 @RestController
-public class Dummy {
+public class DummyController {
 
-    private static final Logger logger = LogManager.getLogger(Dummy.class);
+    private static final Logger logger = LogManager.getLogger(DummyController.class);
 
     @Autowired
-    private UserMapper userMapper;
+    private DummySvc svc;
 
     @RequestMapping(value = "/get", method = { RequestMethod.GET, RequestMethod.POST })
     public String hello(@RequestParam("row") int row) {
 
         logger.info(row);
 
-        List<User> users = userMapper.getUsers0(row);
-        for (User user : users) {
-            logger.info(user.getRow() + "\t" + user.getId() + "\t" + user.getEnrollmentId() + "\t" + user.getToken());
-        }
-
-        logger.info("--------------------------------------");
-        users = userMapper.getUsers1(row);
-        for (User user : users) {
-            logger.info(user.getRow() + "\t" + user.getId() + "\t" + user.getEnrollmentId() + "\t" + user.getToken());
-        }
+        svc.query(row);
+        logger.info("add " + svc.insert() + " users");
 
         return "Hello World! Minami " + row;
     }

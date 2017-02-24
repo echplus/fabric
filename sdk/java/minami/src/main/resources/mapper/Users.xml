@@ -5,7 +5,7 @@
 
 <mapper namespace="minami.com.echplus.mapper.UserMapper">
 
-	<select id="getUsers1" resultType="minami.com.echplus.domain.User" parameterType="java.lang.Integer">
+	<select id="getUsers1" resultType="minami.com.echplus.domain.UserDomain" parameterType="java.lang.Integer">
 		SELECT row, id, enrollmentId, token
 		FROM Users
 		WHERE <![CDATA[ row <= #{row} ]]>

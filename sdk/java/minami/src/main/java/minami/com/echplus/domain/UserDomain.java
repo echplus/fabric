@@ -2,7 +2,7 @@ package minami.com.echplus.domain;
 
 import java.io.Serializable;
 
-public class User implements Serializable {
+public class UserDomain implements Serializable {
 
     private static final long serialVersionUID = 5393908299329541777L;
     private int row;

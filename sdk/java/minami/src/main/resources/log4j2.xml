@@ -1,26 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO">
-	<!-- Define custom levels before using them for filtering below. -->
-	<CustomLevels>
-		<CustomLevel name="DIAG" intLevel="350" />
-		<CustomLevel name="NOTICE" intLevel="450" />
-		<CustomLevel name="VERBOSE" intLevel="550" />
-	</CustomLevels>
-
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<PatternLayout pattern="%d %-7level %logger{36} [%L] - %msg%n" />
+			<PatternLayout pattern="%d %level %logger{36} [%L] - %msg%n" />
 		</Console>
 		<!-- <File name="MyFile" fileName="logs/app.log"> <PatternLayout pattern="%d 
-			%-7level %logger{36} - %msg%n"/> </File> -->
+			%level %logger{36} - %msg%n"/> </File> -->
 	</Appenders>
 
 	<Loggers>
 		<Logger name="org.springframework" level="error" />
-		<Logger name="minami.com.echplus" level="info" />
+		<Logger name="minami.com.echplus" level="debug" />
 		<Logger name="org.springframework.boot.context.embedded.tomcat" level="info" />
 		
-		<Root level="warn">
+		<Root level="error">
 			<AppenderRef ref="Console" />
 			<!-- <AppenderRef ref="MyFile" level="trace" /> -->
 		</Root>
