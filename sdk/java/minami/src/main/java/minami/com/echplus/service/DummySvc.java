@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +48,11 @@ public class DummySvc {
         // userMapper.newUser(user1);
 
         return 1;
+    }
+
+    @Scheduled(cron = "0/60 * * * * *")
+    public void schedule() {
+        logger.info("------dummy schedule job------");
     }
 
 }
