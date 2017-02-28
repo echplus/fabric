@@ -36,170 +36,181 @@ import org.hyperledger.fabric.sdk.ChainCodeResponse.Status;
 
 public class App {
 
-	private static final Log logger = LogFactory.getLog(App.class);
-	private static final Boolean Confidential = true;
-	private static final String CCID = "b371b1947908f8d3a45cbda418b3e989498c240dce0b9a00dfb5e5b0a666c48f";
-	private static final String CCName = "sayaka";
+    private static final Log logger = LogFactory.getLog(App.class);
+    private static final Boolean Confidential = true;
+    private static final String CCID = "9869536a90e844f9a0f9a74388432621334eede79432326e54e4c97d7a29bd44";
+    private static final String CCName = "sayaka";
 
-	public static void main(String[] args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
-		byte[] raw = SDKUtil.hash("Hello World".getBytes(), new SHA256Digest());
-		System.out.println(new String(Hex.encode(raw)));
-		System.out.println(Base64.encodeBase64String(raw));
+        byte[] raw = SDKUtil.hash("Hello World".getBytes(), new SHA256Digest());
+        System.out.println(new String(Hex.encode(raw)));
+        System.out.println(Base64.encodeBase64String(raw));
 
-		App app = new App();
+        App app = new App();
 
-		Chain chain = new Chain("dummy chain");
-		chain.setKeyValStore(new FileKeyValStore("D:/test.properties"));
-		chain.setMemberServicesUrl("grpc://192.168.25.5:7054", null);
-		chain.addPeer("grpc://192.168.25.5:4000", null);
+        Chain chain = new Chain("dummy chain");
+        chain.setKeyValStore(new FileKeyValStore("D:/test.properties"));
+        chain.setMemberServicesUrl("grpc://192.168.25.5:7054", null);
+        chain.addPeer("grpc://192.168.25.5:4000", null);
 
-		app.Enroll(chain);
+        app.Enroll(chain);
 
-		app.Registar(chain);
+        app.Registar(chain);
 
-//		 app.Deploy(chain);
+        // app.Deploy(chain);
 
-//		 app.Invoke(chain, "summary");
-//		 app.Invoke(chain, "subtraction");
-//		 app.Invoke(chain, "err");
+        // app.Invoke(chain, new String[] { "summary", "3", "2" });
+        // app.Invoke(chain, new String[] { "subtraction", "3", "2" });
+        // app.Invoke(chain, new String[] { "err" });
 
-//		 app.Query(chain,"kv");
-//		 app.Query(chain,"table");
+        // app.Invoke(chain, new String[] { "newUser", "yibuki", "20", "nerv" });
+        // app.Invoke(chain, new String[] { "newUser", "katsuraki", "20", "eproject" });
+        // app.Invoke(chain, new String[] { "newUser", "ruizi", "20", "nerv" });
 
-		// app.Odds(chain, "63ed5c50-94ff-414f-a926-f6a1bcbafcfc");
+        // app.Invoke(chain, new String[] { "modifyUser", "katsuraki", "30", "nerv" });
 
-		/** call golang chaincode begin **/
-//		 app.PutValue(chain,"5000","0");
-//		 app.TotalSize(chain);
-		/** call golang chaincode end **/
-	}
+        // app.Invoke(chain, new String[] { "removeUser", "katsuraki" });
 
-	public void Enroll(Chain chain) throws Exception {
-		Member admin = chain.getMember("admin");
-		if (!admin.isEnrolled()) {
-			admin.enroll("Xurw3yU9zI0l");
-		}
-		chain.setRegistrar(admin);
-		logger.info("admin Enroll Success");
-	}
+        // app.Query(chain,new String[] { "kv" });
 
-	public Member Registar(Chain chain) throws Exception {
-		Member minami = chain.getMember("minami");
-		if (!minami.isRegistered()) {
-			RegistrationRequest req = new RegistrationRequest();
-			req.setAffiliation("institution_a");
-			req.setEnrollmentID("minami");
-			req.setRoles(new ArrayList<>(Arrays.asList("client")));
-			minami.register(req);
-			minami.enroll(minami.getEnrollmentSecret());
-			logger.info("Registar Success");
-		}
-		logger.info("minami Enroll Success");
-		return minami;
-	}
+        // app.Query(chain, new String[] { "queryUser", "yibuki" });
+        // app.Query(chain, new String[] { "queryUser", "katsuraki" });
+        // app.Query(chain, new String[] { "queryUser", "ruizi" });
 
-	public void Deploy(Chain chain) throws Exception {
-		DeployRequest request = new DeployRequest();
-		request.setChaincodePath("D:/repo/src/github.com/amamina/fabric/sdk/java/chaincode/target/");
-		request.setArgs(new ArrayList<>(Arrays.asList("init", "index1", "value1")));
-		request.setChaincodeName(CCName);
-		request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
-		request.setConfidential(Confidential);
+        // app.Odds(chain, "42721d4f-7428-43c8-8028-31549b0c3a1d");
 
-		Member minami = chain.getMember("minami");
-		ChainCodeResponse resp = minami.deploy(request);
-		logger.info("CCID: " + resp.getChainCodeID());
-		logger.info("Txid: " + resp.getTransactionID());
-		logger.info("Message: " + resp.getMessage());
-		logger.info("Status: " + resp.getStatus());
-	}
+        /** call golang chaincode begin **/
+        // app.PutValue(chain,"5000","0");
+        // app.TotalSize(chain);
+        /** call golang chaincode end **/
+    }
 
-	public void Invoke(Chain chain, String oper) throws Exception {
-		InvokeRequest request = new InvokeRequest();
-		request.setArgs(new ArrayList<>(Arrays.asList(oper, "3", "2")));
-		request.setChaincodeID(CCID);
-		request.setChaincodeName(SDKUtil.generateUUID());
-		request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
-		request.setConfidential(Confidential);
-		Member minami = chain.getMember("minami");
-		ChainCodeResponse resp = minami.invoke(request);
-		if (resp.getStatus() != Status.SUCCESS) {
-			throw new Exception(resp.getMessage());
-		}
-		logger.info("Txid: " + resp.getTransactionID());
-		logger.info("Message: " + resp.getMessage());
-		logger.info("Status: " + resp.getStatus());
-	}
+    public void Enroll(Chain chain) throws Exception {
+        Member admin = chain.getMember("admin");
+        if (!admin.isEnrolled()) {
+            admin.enroll("Xurw3yU9zI0l");
+        }
+        chain.setRegistrar(admin);
+        logger.info("admin Enroll Success");
+    }
 
-	public void Query(Chain chain, String oper) throws Exception {
-		QueryRequest request = new QueryRequest();
-		request.setArgs(new ArrayList<>(Arrays.asList(oper, "index1")));
-		request.setChaincodeID(CCID);
-		request.setChaincodeName(CCName);
-		request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
-		request.setConfidential(Confidential);
-		Member minami = chain.getMember("minami");
-		ChainCodeResponse resp = minami.query(request);
-		if (resp.getStatus() != Status.SUCCESS) {
-			throw new Exception(resp.getMessage());
-		}
-		logger.info("Txid: " + resp.getTransactionID());
-		logger.info("Message: " + resp.getMessage());
-		logger.info("Status: " + resp.getStatus());
-	}
+    public Member Registar(Chain chain) throws Exception {
+        Member minami = chain.getMember("minami");
+        if (!minami.isRegistered()) {
+            RegistrationRequest req = new RegistrationRequest();
+            req.setAffiliation("institution_a");
+            req.setEnrollmentID("minami");
+            req.setRoles(new ArrayList<>(Arrays.asList("client")));
+            minami.register(req);
+            minami.enroll(minami.getEnrollmentSecret());
+            logger.info("Registar Success");
+        }
+        logger.info("minami Enroll Success");
+        return minami;
+    }
 
-	public void Odds(Chain chain, String txid) throws Exception {
+    public void Deploy(Chain chain) throws Exception {
+        DeployRequest request = new DeployRequest();
+        request.setChaincodePath("D:/repo/src/github.com/amamina/fabric/sdk/java/chaincode/target/");
+        request.setArgs(new ArrayList<>(Arrays.asList("init", "index1", "value1")));
+        request.setChaincodeName(CCName);
+        request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
+        request.setConfidential(Confidential);
 
-		Peer peer = chain.getPeers().get(new Random().nextInt(chain.getPeers().size()));
+        Member minami = chain.getMember("minami");
+        ChainCodeResponse resp = minami.deploy(request);
+        logger.info("CCID: " + resp.getChainCodeID());
+        logger.info("Txid: " + resp.getTransactionID());
+        logger.info("Message: " + resp.getMessage());
+        logger.info("Status: " + resp.getStatus());
+    }
 
-		Endpoint ep = new Endpoint(peer.getUrl(), null);
+    public void Invoke(Chain chain, String[] args) throws Exception {
+        InvokeRequest request = new InvokeRequest();
+        request.setArgs(new ArrayList<>(Arrays.asList(args)));
+        request.setChaincodeID(CCID);
+        request.setChaincodeName(SDKUtil.generateUUID());
+        request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
+        request.setConfidential(Confidential);
+        Member minami = chain.getMember("minami");
+        ChainCodeResponse resp = minami.invoke(request);
+        if (resp.getStatus() != Status.SUCCESS) {
+            throw new Exception(resp.getMessage());
+        }
+        logger.info("Txid: " + resp.getTransactionID());
+        logger.info("Message: " + resp.getMessage());
+        logger.info("Status: " + resp.getStatus());
+    }
 
-		OpenchainBlockingStub client = OpenchainGrpc.newBlockingStub(ep.getChannelBuilder().build());
+    public void Query(Chain chain, String[] args) throws Exception {
+        QueryRequest request = new QueryRequest();
+        request.setArgs(new ArrayList<>(Arrays.asList(args)));
+        request.setChaincodeID(CCID);
+        request.setChaincodeName(CCName);
+        request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
+        request.setConfidential(Confidential);
+        Member minami = chain.getMember("minami");
+        ChainCodeResponse resp = minami.query(request);
+        if (resp.getStatus() != Status.SUCCESS) {
+            throw new Exception(resp.getMessage());
+        }
+        logger.info("Txid: " + resp.getTransactionID());
+        logger.info("Message: " + resp.getMessage());
+        logger.info("Status: " + resp.getStatus());
+    }
 
-		BlockchainInfo info = client.getBlockchainInfo(Empty.newBuilder().build());
-		System.out.println("current height is :\n" + info.getHeight());
+    public void Odds(Chain chain, String txid) throws Exception {
 
-		BlockCount count = client.getBlockCount(Empty.newBuilder().build());
-		System.out.println("blocks count is :\n" + count.getCount());
+        Peer peer = chain.getPeers().get(new Random().nextInt(chain.getPeers().size()));
 
-		Block block = client.getBlockByNumber(BlockNumber.newBuilder().setNumber(2).build());
-		System.out.println("blocks is :\n" + block.toString());
+        Endpoint ep = new Endpoint(peer.getUrl(), null);
 
-		PeersMessage peers = client.getPeers(Empty.newBuilder().build());
-		System.out.println("peers is :\n" + peers.toString());
+        OpenchainBlockingStub client = OpenchainGrpc.newBlockingStub(ep.getChannelBuilder().build());
 
-		Transaction transaction = client.getTransactionByID(Transaction.newBuilder().setTxid(txid).build());
-		System.out.println("transaction is :\n" + transaction.toString());
-	}
+        BlockchainInfo info = client.getBlockchainInfo(Empty.newBuilder().build());
+        System.out.println("current height is :\n" + info.getHeight());
 
-	public void PutValue(Chain chain, String total, String start) throws Exception {
-		InvokeRequest request = new InvokeRequest();
-		request.setArgs(new ArrayList<>(Arrays.asList("putValue", total, start)));
-		request.setChaincodeID(CCID);
-		request.setChaincodeName(SDKUtil.generateUUID());
-		request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
-		request.setConfidential(Confidential);
-		Member minami = chain.getMember("minami");
-		ChainCodeResponse resp = minami.invoke(request);
-		if (resp.getStatus() != Status.SUCCESS) {
-			throw new Exception(resp.getMessage());
-		}
-		logger.info("TXID: " + resp.getTransactionID());
-	}
+        BlockCount count = client.getBlockCount(Empty.newBuilder().build());
+        System.out.println("blocks count is :\n" + count.getCount());
 
-	public void TotalSize(Chain chain) throws Exception {
-		QueryRequest request = new QueryRequest();
-		request.setArgs(new ArrayList<>(Arrays.asList("totalSize")));
-		request.setChaincodeID(CCID);
-		request.setChaincodeName(CCName);
-		request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
-		request.setConfidential(Confidential);
-		Member minami = chain.getMember("minami");
-		ChainCodeResponse resp = minami.query(request);
-		if (resp.getStatus() != Status.SUCCESS) {
-			throw new Exception(resp.getMessage());
-		}
-		logger.info("Result: " + resp.getMessage());
-	}
+        Block block = client.getBlockByNumber(BlockNumber.newBuilder().setNumber(2).build());
+        System.out.println("blocks is :\n" + block.toString());
+
+        PeersMessage peers = client.getPeers(Empty.newBuilder().build());
+        System.out.println("peers is :\n" + peers.toString());
+
+        Transaction transaction = client.getTransactionByID(Transaction.newBuilder().setTxid(txid).build());
+        System.out.println("transaction is :\n" + transaction.toString());
+    }
+
+    public void PutValue(Chain chain, String total, String start) throws Exception {
+        InvokeRequest request = new InvokeRequest();
+        request.setArgs(new ArrayList<>(Arrays.asList("putValue", total, start)));
+        request.setChaincodeID(CCID);
+        request.setChaincodeName(SDKUtil.generateUUID());
+        request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
+        request.setConfidential(Confidential);
+        Member minami = chain.getMember("minami");
+        ChainCodeResponse resp = minami.invoke(request);
+        if (resp.getStatus() != Status.SUCCESS) {
+            throw new Exception(resp.getMessage());
+        }
+        logger.info("TXID: " + resp.getTransactionID());
+    }
+
+    public void TotalSize(Chain chain) throws Exception {
+        QueryRequest request = new QueryRequest();
+        request.setArgs(new ArrayList<>(Arrays.asList("totalSize")));
+        request.setChaincodeID(CCID);
+        request.setChaincodeName(CCName);
+        request.setChaincodeLanguage(ChaincodeLanguage.JAVA);
+        request.setConfidential(Confidential);
+        Member minami = chain.getMember("minami");
+        ChainCodeResponse resp = minami.query(request);
+        if (resp.getStatus() != Status.SUCCESS) {
+            throw new Exception(resp.getMessage());
+        }
+        logger.info("Result: " + resp.getMessage());
+    }
 }

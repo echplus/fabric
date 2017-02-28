@@ -3,6 +3,8 @@ package com.echplus.chaincode;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.hyperledger.fabric.sdk.shim.ChaincodeBase;
 import org.hyperledger.fabric.sdk.shim.ChaincodeStub;
 import org.hyperledger.protos.TableProto.Column;
@@ -11,129 +13,172 @@ import org.hyperledger.protos.TableProto.Row;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-/**
- *
- */
 public class App extends ChaincodeBase {
 
-	private static final String Ok = null;
+    private static final Logger logger = LogManager.getLogger(App.class);
 
-	public static void main(String[] args) throws Exception {
-		System.out.println("starting");
-		new App().start(args);
-	}
+    private static final String Ok = null;
 
-	@Override
-	// deploy and invoke will call this
-	public String run(ChaincodeStub stub, String function, String[] args) {
-		System.out.println("In run, function:" + function);
-		if (args.length > 0) {
-			for (int i = 0; i < args.length; i++) {
-				System.out.println("args[" + i + "] :  " + args[i]);
-			}
-		}
+    public static void main(String[] args) throws Exception {
+        logger.info("starting");
+        new App().start(args);
+    }
 
-		switch (function) {
-		case "init":
-			try {
-				stub.createTable("dummyTable", new ArrayList<ColumnDefinition>() {
-					private static final long serialVersionUID = -646985333253068937L;
-					{
-						add(ColumnDefinition.newBuilder().setName("id").setKey(true)
-								.setType(ColumnDefinition.Type.STRING).build());
-						add(ColumnDefinition.newBuilder().setName("name").setKey(false)
-								.setType(ColumnDefinition.Type.STRING).build());
-					}
-				});
-			} catch (Exception e) {
-				System.err.println(e);
-				e.printStackTrace();
-				return e.getMessage();
-			}
+    @Override
+    // deploy and invoke will call this
+    public String run(ChaincodeStub stub, String function, String[] args) {
+        logger.info("In run, function:" + function);
+        if (args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                logger.info("args[" + i + "] :  " + args[i]);
+            }
+        }
 
-			List<Column> cols = new ArrayList<Column>() {
-				private static final long serialVersionUID = 795900172831697917L;
-				{
-					add(Column.newBuilder().setString(args[0]).build());
-					add(Column.newBuilder().setString(args[1]).build());
-				}
-			};
+        List<Column> cols = null;
 
-			try {
-				stub.insertRow("dummyTable", Row.newBuilder().addAllColumns(cols).build());
-			} catch (Exception e) {
-				System.err.println(e);
-				e.printStackTrace();
-				return e.getMessage();
-			}
-			break;
+        switch (function) {
+        case "init":
+            try {
+                stub.createTable("dummyTable", new ArrayList<ColumnDefinition>() {
+                    private static final long serialVersionUID = -646985333253068937L;
+                    {
+                        add(ColumnDefinition.newBuilder().setName("name").setKey(true)
+                                .setType(ColumnDefinition.Type.STRING).build());
+                        add(ColumnDefinition.newBuilder().setName("age").setKey(false)
+                                .setType(ColumnDefinition.Type.STRING).build());
+                        add(ColumnDefinition.newBuilder().setName("agent").setKey(false)
+                                .setType(ColumnDefinition.Type.STRING).build());
+                    }
+                });
+            } catch (Exception e) {
+                logger.error(e);
+                e.printStackTrace();
+                return e.getMessage();
+            }
+            break;
 
-		case "summary":
-			stub.putState("result", String.valueOf(Integer.parseInt(args[0]) + Integer.parseInt(args[1])));
-			break;
+        case "summary":
+            stub.putState("result", String.valueOf(Integer.parseInt(args[0]) + Integer.parseInt(args[1])));
+            break;
 
-		case "subtraction":
-			stub.putState("result", String.valueOf(Integer.parseInt(args[0]) - Integer.parseInt(args[1])));
-			break;
+        case "subtraction":
+            stub.putState("result", String.valueOf(Integer.parseInt(args[0]) - Integer.parseInt(args[1])));
+            break;
 
-		case "err":
-			return "dummy error";
+        case "newUser":
+            cols = new ArrayList<Column>() {
+                private static final long serialVersionUID = 795900172831697917L;
+                {
+                    add(Column.newBuilder().setString(args[0]).build());
+                    add(Column.newBuilder().setString(args[1]).build());
+                    add(Column.newBuilder().setString(args[2]).build());
+                }
+            };
 
-		default:
-			System.err.println("No matching case for function:" + function);
-			return "No matching case for function:" + function;
-		}
+            try {
+                stub.insertRow("dummyTable", Row.newBuilder().addAllColumns(cols).build());
+            } catch (Exception e) {
+                logger.error(e);
+                e.printStackTrace();
+                return e.getMessage();
+            }
+            break;
 
-		return Ok;
-	}
+        case "modifyUser":
+            cols = new ArrayList<Column>() {
+                private static final long serialVersionUID = 795900172831697917L;
+                {
+                    add(Column.newBuilder().setString(args[0]).build());
+                    add(Column.newBuilder().setString(args[1]).build());
+                    add(Column.newBuilder().setString(args[2]).build());
+                }
+            };
 
-	@Override
-	public String query(ChaincodeStub stub, String function, String[] args) {
-		System.out.println("In query, function:" + function);
-		if (args.length > 0) {
-			for (int i = 0; i < args.length; i++) {
-				System.out.println("args[" + i + "] :  " + args[i]);
-			}
-		}
+            try {
+                stub.replaceRow("dummyTable", Row.newBuilder().addAllColumns(cols).build());
+            } catch (Exception e) {
+                logger.error(e);
+                e.printStackTrace();
+                return e.getMessage();
+            }
+            break;
 
-		switch (function) {
-		case "kv":
-			String result = stub.getState("result");
-			System.out.println("result: " + result);
-			return result;
+        case "removeUser":
+            cols = new ArrayList<Column>() {
+                private static final long serialVersionUID = 795900172831697917L;
+                {
+                    add(Column.newBuilder().setString(args[0]).build());
+                }
+            };
 
-		case "table":
+            try {
+                stub.deleteRow("dummyTable", cols);
+            } catch (Exception e) {
+                logger.error(e);
+                e.printStackTrace();
+                return e.getMessage();
+            }
+            break;
 
-			List<Column> key = new ArrayList<Column>() {
-				private static final long serialVersionUID = 795900172831697917L;
-				{
-					add(Column.newBuilder().setString(args[0]).build());
-				}
-			};
+        case "err":
+            return "dummy error";
 
-			try {
-				Row row = stub.getRow("dummyTable", key);
-				if (row.getSerializedSize() > 0) {
-					return row.getColumns(1).getString();
-				} else {
-					return "not found";
-				}
+        default:
+            logger.error("No matching case for function:" + function);
+            return "No matching case for function:" + function;
+        }
 
-			} catch (InvalidProtocolBufferException e) {
-				System.err.println(e);
-				e.printStackTrace();
-				return e.getMessage();
-			}
+        return Ok;
+    }
 
-		default:
-			System.err.println("No matching case for function:" + function);
-			return "No matching case for function:" + function;
-		}
-	}
+    @Override
+    public String query(ChaincodeStub stub, String function, String[] args) {
+        logger.info("In query, function:" + function);
+        if (args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                logger.info("args[" + i + "] :  " + args[i]);
+            }
+        }
 
-	@Override
-	public String getChaincodeID() {
-		return "hello";
-	}
+        switch (function) {
+        case "kv":
+            String result = stub.getState("result");
+            logger.info("result: " + result);
+            return result;
+
+        case "queryUser":
+
+            List<Column> key = new ArrayList<Column>() {
+                private static final long serialVersionUID = 795900172831697917L;
+                {
+                    add(Column.newBuilder().setString(args[0]).build());
+                }
+            };
+
+            try {
+                Row row = stub.getRow("dummyTable", key);
+                if (row.getSerializedSize() > 0) {
+                    return row.getColumns(0).getString() + "\t" + row.getColumns(1).getString() + "\t"
+                            + row.getColumns(2).getString();
+                } else {
+                    return "not found";
+                }
+
+            } catch (InvalidProtocolBufferException e) {
+                logger.error(e);
+                e.printStackTrace();
+                return e.getMessage();
+            }
+
+        default:
+            logger.error("No matching case for function:" + function);
+            return "No matching case for function:" + function;
+        }
+    }
+
+    @Override
+    public String getChaincodeID() {
+        return "hello";
+    }
 
 }
