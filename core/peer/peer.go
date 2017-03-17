@@ -514,13 +514,20 @@ func (p *Impl) sendTransactionsToLocalEngine(transaction *pb.Transaction) *pb.Re
 		return &pb.Response{Status: pb.Response_FAILURE, Msg: []byte(fmt.Sprintf("Error sending transaction to local engine: %s", err))}
 	}
 
-	result[transaction.Txid] = make(chan string)
-	defer delete(result, transaction.Txid)
+	if viper.GetInt("wait_invoke_returnmsg") > 0 {
+		result[transaction.Txid] = make(chan string)
+		defer delete(result, transaction.Txid)
+		defer close(result[transaction.Txid])
+	}
 
 	var response *pb.Response
 	msg := &pb.Message{Type: pb.Message_CHAIN_TRANSACTION, Payload: data, Timestamp: util.CreateUtcTimestamp()}
 	peerLogger.Debugf("Sending message %s with timestamp %v to local engine", msg.Type, msg.Timestamp)
 	response = p.engine.ProcessTransactionMsg(msg, transaction)
+
+	if viper.GetInt("wait_invoke_returnmsg") == 0 {
+		return response
+	}
 
 	if transaction.Type == pb.Transaction_CHAINCODE_QUERY {
 		return response
@@ -530,19 +537,13 @@ func (p *Impl) sendTransactionsToLocalEngine(transaction *pb.Transaction) *pb.Re
 			return response
 		}
 
-		wait := viper.GetInt("wait_invoke_returnmsg")
-		if wait == 0 {
-			wait = 5
-		}
-		ttl := time.Second * time.Duration(wait)
-
 		select {
 		case errMsg := <-result[transaction.Txid]:
 			if errMsg != "" {
 				response.Status = pb.Response_FAILURE
 				response.Msg = []byte(errMsg)
 			}
-		case <-time.After(ttl):
+		case <-time.After(time.Second * time.Duration(viper.GetInt("wait_invoke_returnmsg"))):
 			// do nothing
 		}
 	}
